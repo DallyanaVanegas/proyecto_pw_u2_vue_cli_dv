@@ -1,12 +1,14 @@
 <template>
-  <img src="https://via.placeholder.com/250" alt="no encontrado" />
+  <img v-if="imagen" v-bind:src="imagen" alt="no encontrado" />
   <div class="br-oscuro"></div>
   <div class="pregunta-container">
     <input v-model="pregunta" type="text" placeholder="Hazme una pregunta" />
     <p>Recuerda terminar con un signo de interrogación (?)</p>
 
-    <h2>{{ pregunta }}</h2>
-    <h1>SI, NO, ...Pensando</h1>
+    <div v-if="preguntaValida">
+      <h2>{{ pregunta }}</h2>
+      <h1>{{ respuesta }}</h1>
+    </div>
   </div>
 </template>
 
@@ -15,13 +17,32 @@ import { watch } from "@vue/runtime-core";
 export default {
   data() {
     return {
-      pregunta: "hola mundo",
+      pregunta: null,
+      respuesta: null,
+      imagen: null,
+      preguntaValida: false,
     };
   },
   methods: {
     async obtenerRespuesta() {
-      const data = await fetch("https://yesno.wtf/#api").then(r => r.json());
-      console.log(data);
+      this.respuesta = "Pensando..";
+      this.respuesta = "Pensando....";
+      const { answer, image } = await fetch("https://yesno.wtf/api").then((r) =>
+        r.json()
+      );
+      this.respuesta = "Pensando....";
+      console.log("RESPUESTA: ");
+      console.log(answer);
+      console.log(image);
+      this.respuesta = answer;
+      this.imagen = image;
+    },
+    async consultaCovid() {
+      const data = await fetch(
+        "https://api.covidtracking.com/v1/us/current.json"
+      ).then((r) => r.json());
+      const { negative } = data[0];
+      console.log(negative);
     },
   },
   watch: {
@@ -31,9 +52,11 @@ export default {
       //console.log(value.includes("?"));
 
       if (!value.includes("?")) return;
+      this.preguntaValida = true;
       console.log("SI INCLUYE");
       //llamar y consultar al API
-      this.obtenerRespuesta()
+      this.obtenerRespuesta();
+      this.consultaCovid();
     },
   },
 };
